@@ -10,16 +10,18 @@ def search_in_excel(directory, search_value):
         file_path = os.path.join(directory, excel_file)
         excel_data = pd.read_excel(file_path, sheet_name=None)
         for sheet_name, sheet_data in excel_data.items():
-            if search_value in sheet_data.values:
+            if sheet_data.map(lambda x: str(x).lower() if pd.notna(x) else x).eq(str(search_value).lower()).any().any():
                 #row,col=divmod((sheet_data==search_value).to_numpy().nonzero()[0][0],len(sheet_data.columns))
-                string+=f"Found value: '{search_value}' in sheet: '{sheet_name}' of file: '{excel_file}'"+"\n"               
+                string+=f"Found value: '{search_value}' in sheet: '{sheet_name}' of file: '{excel_file}'"+"\n"                 
     return string                 
 if __name__=='__main__':
     input_file=askopenfilename()
-    input_value=askstring('Search','Enter the value: ')
+    input_value=askstring('Search','Enter the value: ').lower().rstrip()
     directory_path=os.path.dirname(input_file)                
     log=search_in_excel(directory_path, input_value)
     sp.Popen(['notepad', "search.txt"]) 
-    file=open('search.txt','w',encoding="utf-16-le")
-    file.write(log)
-    file.close()
+    file=open('search.txt','w',encoding="utf-16-le")    
+    if log=='':
+        file.write(f'{input_value} not found!')  
+    else:      
+        file.write(log)
